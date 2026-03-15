@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.env
+*.js.map
+
+# Never commit real tokens
+~/.epic-mcp-tokens.json
+*.tokens.json
+
+# OS
+.DS_Store

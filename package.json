@@ -1,0 +1,26 @@
+{
+  "name": "epic-fhir-mcp",
+  "version": "0.1.0",
+  "description": "MCP server for Epic FHIR — purpose-built for cancer and complex care patients",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "node --loader ts-node/esm src/index.ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.10.0",
+    "axios": "^1.7.0",
+    "dotenv": "^16.4.0",
+    "open": "^10.1.0",
+    "uuid": "^9.0.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/uuid": "^9.0.0",
+    "ts-node": "^10.9.0",
+    "typescript": "^5.4.0"
+  }
+}
