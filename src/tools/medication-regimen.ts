@@ -28,21 +28,19 @@ export async function medicationRegimenHandler(): Promise<string> {
   const lines = ['## Current Medication Regimen\n'];
 
   if (regimen.chemoAgents.length > 0) {
-    lines.push('### Chemotherapy / Immunotherapy Agents');
+    lines.push('### Primary / Specialty Medications');
     lines.push(formatMedList(regimen.chemoAgents));
     lines.push('');
   }
 
   if (regimen.supportive.length > 0) {
     lines.push('### Supportive Medications');
-    lines.push('_(Antiemetics, growth factors, steroids)_');
     lines.push(formatMedList(regimen.supportive));
     lines.push('');
   }
 
   if (regimen.prophylaxis.length > 0) {
-    lines.push('### Prophylaxis');
-    lines.push('_(Antifungals, antivirals, antibiotics)_');
+    lines.push('### Preventive Medications');
     lines.push(formatMedList(regimen.prophylaxis));
     lines.push('');
   }

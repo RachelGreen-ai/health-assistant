@@ -9,7 +9,6 @@ import { careTeamInputSchema, careTeamHandler }                 from './tools/ca
 import { clinicalNotesInputSchema, clinicalNotesHandler }       from './tools/clinical-notes.js';
 import { treatmentHistoryInputSchema, treatmentHistoryHandler } from './tools/treatment-history.js';
 import { allergyProfileInputSchema, allergyProfileHandler }     from './tools/allergy-profile.js';
-import { oncologySummaryInputSchema, oncologySummaryHandler }   from './tools/oncology-summary.js';
 
 export function createServer(): McpServer {
   const server = new McpServer({
@@ -40,7 +39,7 @@ export function createServer(): McpServer {
   // ── Labs ──────────────────────────────────────────────────────────────────────
   server.tool(
     'get_lab_trends',
-    'Get time-series lab results for one or more panels: CBC (WBC, ANC, Hgb, Platelets), CMP (metabolic panel), or TUMOR_MARKERS (CEA, CA-125, PSA, AFP, etc.). Returns values sorted newest-first with reference ranges and interpretation flags.',
+    'Get time-series lab results. Panels: CBC (WBC, ANC, Hgb, Platelets), CMP (metabolic panel), TUMOR_MARKERS (CEA, CA-125, PSA, AFP, etc.), or leave blank for all recent labs. Returns values newest-first with reference ranges.',
     labTrendsInputSchema.shape,
     async (input) => ({
       content: [{ type: 'text', text: await wrapHandler(() => labTrendsHandler(input as Parameters<typeof labTrendsHandler>[0])) }],
@@ -50,7 +49,7 @@ export function createServer(): McpServer {
   // ── Medications ───────────────────────────────────────────────────────────────
   server.tool(
     'get_medication_regimen',
-    'Get all active medications grouped by category: chemotherapy/immunotherapy agents, supportive medications (antiemetics, growth factors), prophylaxis (antivirals, antifungals), PRN (as-needed), and other.',
+    'Get all active medications grouped by category: primary/specialty medications, supportive medications, preventive medications, as-needed (PRN), and other.',
     medicationRegimenInputSchema.shape,
     async () => ({
       content: [{ type: 'text', text: await wrapHandler(medicationRegimenHandler) }],
@@ -90,7 +89,7 @@ export function createServer(): McpServer {
   // ── Treatment History ─────────────────────────────────────────────────────────
   server.tool(
     'get_treatment_history',
-    'Get past procedures and treatments: surgeries, chemotherapy cycles, CAR-T/stem cell transplants, radiation, and infusions. Optionally filter by date range.',
+    'Get past procedures and treatments: surgeries, infusions, therapies, and other procedures. Optionally filter by date range.',
     treatmentHistoryInputSchema.shape,
     async (input) => ({
       content: [{ type: 'text', text: await wrapHandler(() => treatmentHistoryHandler(input as Parameters<typeof treatmentHistoryHandler>[0])) }],
@@ -104,16 +103,6 @@ export function createServer(): McpServer {
     allergyProfileInputSchema.shape,
     async () => ({
       content: [{ type: 'text', text: await wrapHandler(allergyProfileHandler) }],
-    })
-  );
-
-  // ── Oncology Summary ──────────────────────────────────────────────────────────
-  server.tool(
-    'get_oncology_summary',
-    'Get a comprehensive one-call oncology overview: primary diagnosis, current treatment protocol, recent CBC and tumor marker labs (last 30 days), and next appointment. Ideal as the first call when starting a health conversation.',
-    oncologySummaryInputSchema.shape,
-    async () => ({
-      content: [{ type: 'text', text: await wrapHandler(oncologySummaryHandler) }],
     })
   );
 
