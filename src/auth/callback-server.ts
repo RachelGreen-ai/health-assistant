@@ -90,10 +90,8 @@ export function startCallbackServer(expectedState: string): Promise<CallbackResu
       server.close();
     }
 
-    // Port 0 → OS picks a free port
-    server.listen(0, '127.0.0.1', () => {
+    server.listen(9090, '127.0.0.1', () => {
       const addr = server.address() as { port: number };
-      // Expose the port so the caller can read it before the Promise resolves
       (server as unknown as { _assignedPort: number })._assignedPort = addr.port;
     });
 
@@ -108,16 +106,31 @@ export function startCallbackServer(expectedState: string): Promise<CallbackResu
  * Start the server and immediately return both the port and the promise.
  * This lets auth-client.ts read the port before awaiting the callback.
  */
+// Module-level server so we can close a stale one before starting fresh
+let activeServer: http.Server | null = null;
+
 export function startCallbackServerWithPort(expectedState: string): {
   port: Promise<number>;
   result: Promise<CallbackResult>;
 } {
+  // Close any leftover server from a previous authorize call
+  if (activeServer) {
+    console.error('[callback] Closing stale callback server from previous call');
+    activeServer.close();
+    activeServer = null;
+  }
+
   let resolvePort!: (port: number) => void;
-  const portPromise = new Promise<number>((res) => { resolvePort = res; });
+  let rejectPort!: (err: Error) => void;
+  const portPromise = new Promise<number>((res, rej) => { resolvePort = res; rejectPort = rej; });
 
   const resultPromise = new Promise<CallbackResult>((resolve, reject) => {
-    const server = http.createServer((req, res) => {
+    const server = activeServer = http.createServer((req, res) => {
       const reqUrl = new URL(req.url ?? '/', `http://localhost`);
+
+      // Debug: log everything Epic sends back
+      console.error(`[callback] full URL: ${req.url}`);
+      console.error(`[callback] params: ${reqUrl.searchParams.toString()}`);
 
       if (reqUrl.pathname !== '/callback') {
         res.writeHead(404);
@@ -142,7 +155,7 @@ export function startCallbackServerWithPort(expectedState: string): {
         res.writeHead(400, { 'Content-Type': 'text/html' });
         res.end(ERROR_HTML('Missing code or state parameter.'));
         cleanup();
-        reject(new Error('OAuth callback missing code or state'));
+        reject(new Error(`OAuth callback missing code or state. Received: ${reqUrl.searchParams.toString()}`));
         return;
       }
 
@@ -169,17 +182,35 @@ export function startCallbackServerWithPort(expectedState: string): {
     function cleanup() {
       clearTimeout(timer);
       server.close();
+      activeServer = null;
     }
 
-    server.listen(0, '127.0.0.1', () => {
-      const addr = server.address() as { port: number };
-      resolvePort(addr.port);
+    const tryListen = () => {
+      server.listen(9090, '127.0.0.1', () => {
+        const addr = server.address() as { port: number };
+        resolvePort(addr.port);
+      });
+    };
+
+    server.on('error', (err: NodeJS.ErrnoException) => {
+      if (err.code === 'EADDRINUSE') {
+        // Port stuck from previous run — kill it and retry once
+        console.error('[callback] Port 9090 in use, freeing it...');
+        import('child_process').then(({ exec }) => {
+          exec('lsof -ti:9090 | xargs kill -9', () => {
+            server.removeAllListeners('error');
+            server.on('error', (e) => { cleanup(); rejectPort(e as Error); reject(e); });
+            setTimeout(tryListen, 500);
+          });
+        });
+      } else {
+        cleanup();
+        rejectPort(err);
+        reject(err);
+      }
     });
 
-    server.on('error', (err) => {
-      cleanup();
-      reject(err);
-    });
+    tryListen();
   });
 
   return { port: portPromise, result: resultPromise };

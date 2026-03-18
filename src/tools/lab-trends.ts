@@ -8,9 +8,8 @@ import type { LabResult } from '../types/domain.js';
 
 export const labTrendsInputSchema = z.object({
   panels: z
-    .array(z.enum(['CBC', 'CMP', 'TUMOR_MARKERS']))
-    .min(1)
-    .describe('Which lab panels to retrieve'),
+    .string()
+    .describe('Comma-separated list of lab panels: CBC, CMP, TUMOR_MARKERS. Example: "CBC,CMP"'),
   startDate: z
     .string()
     .optional()
@@ -28,7 +27,8 @@ export const labTrendsInputSchema = z.object({
     .describe('Maximum number of results per analyte'),
 });
 
-type Input = z.infer<typeof labTrendsInputSchema>;
+type RawInput = z.infer<typeof labTrendsInputSchema>;
+type Input = Omit<RawInput, 'panels'> & { panels: LabPanel[] };
 
 function interpretIcon(r: LabResult): string {
   switch (r.interpretation) {
@@ -41,7 +41,18 @@ function interpretIcon(r: LabResult): string {
   }
 }
 
-export async function labTrendsHandler(input: Input): Promise<string> {
+export async function labTrendsHandler(raw: RawInput): Promise<string> {
+  const VALID: LabPanel[] = ['CBC', 'CMP', 'TUMOR_MARKERS'];
+  const panels = (raw.panels as string)
+    .split(',')
+    .map(s => s.trim().toUpperCase() as LabPanel)
+    .filter(p => VALID.includes(p));
+
+  if (panels.length === 0) {
+    return 'Please specify at least one panel: CBC, CMP, or TUMOR_MARKERS.';
+  }
+
+  const input: Input = { ...raw, panels };
   const patientId = getPatientId();
 
   // Default date range: last 90 days
@@ -50,7 +61,7 @@ export async function labTrendsHandler(input: Input): Promise<string> {
 
   const lines: string[] = [`## Lab Trends (${startDate} to ${endDate})\n`];
 
-  for (const panel of input.panels as LabPanel[]) {
+  for (const panel of input.panels) {
     const codes = PANEL_CODES[panel];
     let observations;
     try {

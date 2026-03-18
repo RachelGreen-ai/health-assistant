@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
-import open from 'open';
+import { execFile } from 'child_process';
 import { generatePkce } from './pkce.js';
 import { startCallbackServerWithPort } from './callback-server.js';
 import { saveTokens, loadTokens, StoredTokens } from './token-store.js';
@@ -9,9 +9,8 @@ import { config } from '../config.js';
 // Scopes requested from Epic
 const SCOPES = [
   'openid',
-  'profile',
+  'fhirUser',
   'offline_access',
-  'launch/patient',
   'patient/Patient.read',
   'patient/Observation.read',
   'patient/MedicationRequest.read',
@@ -44,10 +43,10 @@ export async function authorize(): Promise<{ patientId: string }> {
   const pkce  = generatePkce();
   const state = uuidv4();
 
-  // Start callback server first so we know which port to put in redirect_uri
+  // Start callback server — await port so server is ready before we open browser
   const { port: portPromise, result: callbackPromise } = startCallbackServerWithPort(state);
-  const port = await portPromise;
-  const redirectUri = `http://localhost:${port}/callback`;
+  await portPromise;
+  const redirectUri = config.redirectUri;
 
   // Build authorization URL
   const authParams = new URLSearchParams({
@@ -59,12 +58,18 @@ export async function authorize(): Promise<{ patientId: string }> {
     aud:                   config.baseUrl,
     code_challenge:        pkce.codeChallenge,
     code_challenge_method: pkce.codeChallengeMethod,
+    prompt:                'login',   // force fresh login, ignore existing session
   });
   const authUrl = `${config.authUrl}?${authParams.toString()}`;
 
-  console.error('[auth] Opening browser for Epic login...');
-  console.error(`[auth] If the browser does not open, visit:\n  ${authUrl}`);
-  await open(authUrl);
+  console.error('[auth] Opening browser for Epic login (private window)...');
+  console.error(`[auth] Auth URL:\n  ${authUrl}`);
+  // Open URL in browser (new window to avoid stale MyChart sessions)
+  execFile('/usr/bin/open', ['-n', authUrl], (err) => {
+    if (err) {
+      execFile('/usr/bin/open', [authUrl]);
+    }
+  });
 
   // Wait for the user to log in and Epic to redirect back
   const callback = await callbackPromise;
@@ -73,7 +78,7 @@ export async function authorize(): Promise<{ patientId: string }> {
   const tokenParams = new URLSearchParams({
     grant_type:    'authorization_code',
     code:          callback.code,
-    redirect_uri:  redirectUri,
+    redirect_uri:  config.redirectUri,
     client_id:     config.clientId,
     code_verifier: pkce.codeVerifier,
   });

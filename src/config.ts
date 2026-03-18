@@ -15,7 +15,7 @@ export type Config = z.infer<typeof ConfigSchema>;
 function loadConfig(): Config {
   const raw = {
     clientId:               process.env.EPIC_CLIENT_ID,
-    redirectUri:            process.env.EPIC_REDIRECT_URI ?? 'http://localhost:0/callback',
+    redirectUri:            process.env.EPIC_REDIRECT_URI ?? 'http://localhost:9090/callback',
     baseUrl:                process.env.EPIC_BASE_URL     ?? 'https://fhir.epic.com/interconnect-fhir-oauth/api/FHIR/R4',
     authUrl:                process.env.EPIC_AUTH_URL     ?? 'https://fhir.epic.com/interconnect-fhir-oauth/oauth2/authorize',
     tokenUrl:               process.env.EPIC_TOKEN_URL    ?? 'https://fhir.epic.com/interconnect-fhir-oauth/oauth2/token',

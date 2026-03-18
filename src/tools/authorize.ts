@@ -4,6 +4,7 @@ import { authorize } from '../auth/auth-client.js';
 export const authorizeInputSchema = z.object({});
 
 export async function authorizeHandler(): Promise<string> {
+  console.error('[authorize] Starting OAuth flow. If browser does not show a login page, paste the URL shown in logs into a private/incognito window and log in with fhircamila / epicepic1');
   const { patientId } = await authorize();
   return [
     'Authorization successful!',
