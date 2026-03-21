@@ -202,13 +202,14 @@ app.post('/auth/start', (_req, res) => {
     redirect_uri:          process.env.EPIC_REDIRECT_URI ?? '',
     scope:                 SCOPES,
     state,
-    aud:                   process.env.EPIC_BASE_URL ?? '',
+    aud:                   process.env.EPIC_BASE_URL ?? 'https://fhir.epic.com/interconnect-fhir-oauth/api/FHIR/R4',
     code_challenge:        pkce.codeChallenge,
     code_challenge_method: 'S256',
     prompt:                'login',
   });
 
-  const url = `${process.env.EPIC_AUTH_URL}?${params.toString()}`;
+  const epicAuthUrl = process.env.EPIC_AUTH_URL ?? 'https://fhir.epic.com/interconnect-fhir-oauth/oauth2/authorize';
+  const url = `${epicAuthUrl}?${params.toString()}`;
   res.json({ url });
 });
 

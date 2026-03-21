@@ -17,16 +17,11 @@ async function connect(): Promise<Client> {
   const transport = new StdioClientTransport({
     command: NODE_BIN,
     args: [MCP_SERVER_PATH],
-    env: {
-      ...process.env,
-      EPIC_CLIENT_ID:      process.env.EPIC_CLIENT_ID ?? '',
-      EPIC_BASE_URL:       process.env.EPIC_BASE_URL ?? '',
-      EPIC_AUTH_URL:       process.env.EPIC_AUTH_URL ?? '',
-      EPIC_TOKEN_URL:      process.env.EPIC_TOKEN_URL ?? '',
-      TOKEN_FILE_PATH:     process.env.TOKEN_FILE_PATH ?? '',
-      EPIC_REDIRECT_URI:   process.env.EPIC_REDIRECT_URI ?? '',
-      PATIENT_DISTANCE_THRESHOLD_MILES: process.env.PATIENT_DISTANCE_THRESHOLD_MILES ?? '30',
-    },
+    // Pass parent env as-is so the MCP server inherits all Render env vars.
+    // Do NOT replace undefined vars with '' — the MCP server's config.ts uses
+    // nullish coalescing (??) for defaults, which only fires on null/undefined,
+    // not on empty strings. Passing '' would bypass defaults and fail Zod validation.
+    env: process.env as Record<string, string>,
   });
 
   const client = new Client({ name: 'health-assistant-backend', version: '0.1.0' });
