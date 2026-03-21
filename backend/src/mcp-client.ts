@@ -5,8 +5,9 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-// The compiled MCP server lives two levels up: backend/src → backend → project root → dist/index.js
-const MCP_SERVER_PATH = path.resolve(__dirname, '../../dist/index.js');
+// The build copies the root dist/ to backend/dist-mcp/ so it travels with the backend artifact.
+// From backend/dist/ (runtime __dirname), ../dist-mcp/ resolves to backend/dist-mcp/.
+const MCP_SERVER_PATH = path.resolve(__dirname, '../dist-mcp/index.js');
 
 // Use the node binary that's running this process, not a hardcoded path.
 const NODE_BIN = process.execPath;
