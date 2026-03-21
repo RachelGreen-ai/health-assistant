@@ -67,7 +67,7 @@ app.get('/health', (_req, res) => {
 // ── Debug (temporary) ────────────────────────────────────────────────────────
 const __filename = fileURLToPath(import.meta.url);
 const __dirname  = path.dirname(__filename);
-const MCP_DEBUG_PATH = path.resolve(__dirname, '../dist-mcp/index.js');
+const MCP_DEBUG_PATH = path.resolve(__dirname, '../../dist/index.js');
 
 app.get('/debug', (_req, res) => {
   res.json({
