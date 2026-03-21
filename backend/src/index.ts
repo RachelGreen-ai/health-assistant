@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import os from 'os';
 import crypto from 'crypto';
 import express from 'express';
@@ -61,6 +62,23 @@ const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 25 
 // ── Health check ────────────────────────────────────────────────────────────
 app.get('/health', (_req, res) => {
   res.json({ ok: true });
+});
+
+// ── Debug (temporary) ────────────────────────────────────────────────────────
+const __filename = fileURLToPath(import.meta.url);
+const __dirname  = path.dirname(__filename);
+const MCP_DEBUG_PATH = path.resolve(__dirname, '../../dist/index.js');
+
+app.get('/debug', (_req, res) => {
+  res.json({
+    mcpPath:      MCP_DEBUG_PATH,
+    mcpExists:    fs.existsSync(MCP_DEBUG_PATH),
+    cwd:          process.cwd(),
+    nodeVersion:  process.version,
+    epicClientId: process.env.EPIC_CLIENT_ID ? 'set' : 'missing',
+    epicTokenUrl: process.env.EPIC_TOKEN_URL  ?? 'missing',
+    epicBaseUrl:  process.env.EPIC_BASE_URL   ?? 'missing',
+  });
 });
 
 // ── Chat (streaming SSE) ────────────────────────────────────────────────────
