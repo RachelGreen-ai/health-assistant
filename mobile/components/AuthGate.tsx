@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, ActivityIndicator, StyleSheet, Linking } from 'react-native';
 import { Colors } from '@/constants/Colors';
 import { getAuthStatus, startAuth } from '@/services/api';
 
@@ -37,7 +37,8 @@ export function AuthGate({ children }: Props) {
     setState('authorizing');
     setErrorMsg('');
     try {
-      await startAuth();
+      const url = await startAuth();
+      await Linking.openURL(url);
     } catch (e) {
       setErrorMsg(e instanceof Error ? e.message : 'Failed to start authorization');
       setState('error');
@@ -71,8 +72,8 @@ export function AuthGate({ children }: Props) {
           <>
             <ActivityIndicator color={Colors.blue} style={styles.spinner} />
             <Text style={styles.hint}>
-              A browser window has opened on the server.{'\n'}
-              Sign in with your Epic credentials, then return here.
+              A browser has opened for Epic sign-in.{'\n'}
+              Complete login, then return to the app.
             </Text>
           </>
         ) : (

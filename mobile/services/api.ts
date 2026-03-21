@@ -66,9 +66,11 @@ export async function getAuthStatus(): Promise<AuthStatus> {
   }
 }
 
-export async function startAuth(): Promise<void> {
+export async function startAuth(): Promise<string> {
   const res = await fetch(`${API_BASE}/auth/start`, { method: 'POST' });
   if (!res.ok) throw new Error(`Auth start failed: ${res.status}`);
+  const json = await res.json() as { url: string };
+  return json.url;
 }
 
 export async function clearSession(sessionId: string): Promise<void> {
