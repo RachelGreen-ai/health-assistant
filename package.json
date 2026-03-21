@@ -6,7 +6,9 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
+    "build:all": "npm run build && cd backend && npm install --production=false && npm run build",
     "start": "node dist/index.js",
+    "start:backend": "cd backend && node dist/index.js",
     "dev": "node --loader ts-node/esm src/index.ts"
   },
   "dependencies": {

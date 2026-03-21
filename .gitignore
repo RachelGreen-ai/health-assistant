@@ -3,9 +3,11 @@ dist/
 .env
 *.js.map
 
-# Never commit real tokens
+# Never commit real tokens or local IDE config
 ~/.epic-mcp-tokens.json
 *.tokens.json
+.mcp.json
+".env copy.example"
 
 # OS
 .DS_Store

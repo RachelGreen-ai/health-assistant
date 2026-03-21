@@ -1,0 +1,39 @@
+{
+  "expo": {
+    "name": "HealthCompanion",
+    "slug": "healthcompanion",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "scheme": "healthcompanion",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0a0c12"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.healthcompanion.app",
+      "infoPlist": {
+        "NSMicrophoneUsageDescription": "HealthCompanion uses the microphone for voice input to your health assistant.",
+        "NSSpeechRecognitionUsageDescription": "HealthCompanion uses speech recognition to transcribe your voice messages."
+      }
+    },
+    "android": {
+      "package": "com.healthcompanion.app",
+      "permissions": ["RECORD_AUDIO"]
+    },
+    "plugins": [
+      "expo-router",
+      "expo-av",
+      [
+        "expo-secure-store",
+        { "faceIDPermission": "Allow HealthCompanion to use Face ID." }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

@@ -1,0 +1,16 @@
+export const Colors = {
+  bg: '#0a0c12',
+  bgGrouped: '#1c1c1e',
+  bgCard: '#2c2c2e',
+  blue: '#0a84ff',
+  purple: '#5856d6',
+  green: '#30d158',
+  orange: '#ff9f0a',
+  red: '#ff453a',
+  textPrimary: '#f2f2f7',
+  textSecondary: '#aeaeb2',
+  textTertiary: '#636366',
+  separator: 'rgba(84,84,88,0.6)',
+  tabActive: '#0a84ff',
+  tabInactive: '#636366',
+};
