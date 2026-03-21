@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '@/constants/Colors';
 import { useLanguage } from '@/hooks/useLanguage';
 import { useChat } from '@/hooks/useChat';
@@ -18,7 +19,7 @@ export default function ChatScreen() {
   const { mode } = useLocalSearchParams<{ mode?: string }>();
   const { language, t } = useLanguage();
   const { messages, isStreaming, sendMessage, clearChat } = useChat(SESSION_ID, language);
-  const { state: voiceState, error: voiceError, startRecording, stopRecording, speak } = useVoice(language);
+  const { state: voiceState, error: voiceError, startRecording, stopRecording } = useVoice(language);
   const [inputText, setInputText] = useState('');
   const [showVoice, setShowVoice] = useState(mode === 'voice');
   const listRef = useRef<FlatList>(null);
@@ -48,12 +49,14 @@ export default function ChatScreen() {
         <Text style={styles.headerTitle}>HealthCompanion</Text>
         <View style={styles.headerActions}>
           <TouchableOpacity onPress={() => setShowVoice((v) => !v)} style={styles.headerBtn}>
-            <Text style={[styles.headerBtnText, showVoice && styles.headerBtnActive]}>
-              {showVoice ? '⌨' : '🎙'}
-            </Text>
+            <Ionicons
+              name={showVoice ? 'keypad-outline' : 'mic-outline'}
+              size={17}
+              color={showVoice ? Colors.blue : Colors.textSecondary}
+            />
           </TouchableOpacity>
           <TouchableOpacity onPress={clearChat} style={styles.headerBtn}>
-            <Text style={styles.headerBtnText}>↺</Text>
+            <Ionicons name="refresh" size={17} color={Colors.textSecondary} />
           </TouchableOpacity>
         </View>
       </View>
@@ -75,13 +78,25 @@ export default function ChatScreen() {
 
         {showVoice ? (
           <View style={styles.voiceBar}>
-            <Text style={styles.voiceStatus}>
-              {voiceError ? `⚠ ${voiceError}`
-                : voiceState === 'recording' ? t('listening')
-                : voiceState === 'transcribing' ? t('transcribing')
-                : voiceState === 'speaking' ? '♪ Speaking…'
-                : 'Hold to speak'}
-            </Text>
+            <View style={styles.voiceStatusRow}>
+              {voiceError ? (
+                <>
+                  <Ionicons name="warning-outline" size={13} color={Colors.orange} />
+                  <Text style={[styles.voiceStatus, { color: Colors.orange }]}>{voiceError}</Text>
+                </>
+              ) : voiceState === 'speaking' ? (
+                <>
+                  <Ionicons name="musical-note" size={13} color={Colors.textSecondary} />
+                  <Text style={styles.voiceStatus}>Speaking…</Text>
+                </>
+              ) : (
+                <Text style={styles.voiceStatus}>
+                  {voiceState === 'recording' ? t('listening')
+                    : voiceState === 'transcribing' ? t('transcribing')
+                    : 'Hold to speak'}
+                </Text>
+              )}
+            </View>
             <VoiceButton
               state={voiceState}
               onPressIn={handleVoicePressIn}
@@ -106,7 +121,11 @@ export default function ChatScreen() {
               onPress={handleSend}
               disabled={!inputText.trim() || isStreaming}
             >
-              <Text style={styles.sendBtnText}>↑</Text>
+              <Ionicons
+                name="arrow-up"
+                size={18}
+                color={!inputText.trim() || isStreaming ? Colors.textTertiary : '#fff'}
+              />
             </TouchableOpacity>
           </View>
         )}
@@ -118,7 +137,9 @@ export default function ChatScreen() {
 function EmptyState({ t }: { t: (k: string) => string }) {
   return (
     <View style={styles.empty}>
-      <Text style={styles.emptyIcon}>✦</Text>
+      <View style={styles.emptyIconWrap}>
+        <Ionicons name="sparkles" size={32} color={Colors.blue} />
+      </View>
       <Text style={styles.emptyTitle}>HealthCompanion</Text>
       <Text style={styles.emptySubtitle}>{t('askPrompt')}</Text>
     </View>
@@ -136,8 +157,6 @@ const styles = StyleSheet.create({
   headerTitle: { fontSize: 17, fontWeight: '600', color: Colors.textPrimary },
   headerActions: { flexDirection: 'row', gap: 8 },
   headerBtn: { width: 34, height: 34, borderRadius: 17, backgroundColor: Colors.bgCard, alignItems: 'center', justifyContent: 'center' },
-  headerBtnText: { fontSize: 16, color: Colors.textSecondary },
-  headerBtnActive: { color: Colors.blue },
   list: { flex: 1 },
   listContent: { paddingTop: 16, paddingBottom: 8 },
   inputBar: {
@@ -156,14 +175,14 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.blue, alignItems: 'center', justifyContent: 'center',
   },
   sendBtnDisabled: { backgroundColor: Colors.bgCard },
-  sendBtnText: { color: '#fff', fontSize: 18, fontWeight: '700', lineHeight: 22 },
   voiceBar: {
     alignItems: 'center', paddingVertical: 20, gap: 10,
     borderTopWidth: 0.5, borderTopColor: Colors.separator,
   },
+  voiceStatusRow: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   voiceStatus: { fontSize: 13, color: Colors.textSecondary },
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 40, gap: 12, marginTop: 80 },
-  emptyIcon: { fontSize: 36, color: Colors.blue },
+  emptyIconWrap: { width: 64, height: 64, borderRadius: 32, backgroundColor: `${Colors.blue}18`, alignItems: 'center', justifyContent: 'center' },
   emptyTitle: { fontSize: 20, fontWeight: '700', color: Colors.textPrimary },
   emptySubtitle: { fontSize: 14, color: Colors.textSecondary, textAlign: 'center', lineHeight: 20 },
 });

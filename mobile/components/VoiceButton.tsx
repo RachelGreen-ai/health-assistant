@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
-import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Animated, Pressable, StyleSheet, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '@/constants/Colors';
 
 interface Props {
@@ -28,12 +29,15 @@ export function VoiceButton({ state, onPressIn, onPressOut }: Props) {
   const active = state === 'recording';
   const busy = state === 'transcribing' || state === 'speaking';
 
+  const iconName: React.ComponentProps<typeof Ionicons>['name'] =
+    state === 'transcribing' ? 'ellipsis-horizontal' :
+    state === 'speaking' ? 'musical-note' :
+    'mic';
+
   return (
     <View style={styles.wrapper}>
       {active && (
-        <Animated.View
-          style={[styles.ring, { transform: [{ scale: pulse }] }]}
-        />
+        <Animated.View style={[styles.ring, { transform: [{ scale: pulse }] }]} />
       )}
       <Pressable
         onPressIn={onPressIn}
@@ -41,9 +45,7 @@ export function VoiceButton({ state, onPressIn, onPressOut }: Props) {
         disabled={busy}
         style={[styles.btn, active && styles.btnActive, busy && styles.btnBusy]}
       >
-        <Text style={styles.icon}>
-          {state === 'transcribing' ? '…' : state === 'speaking' ? '♪' : '🎙'}
-        </Text>
+        <Ionicons name={iconName} size={24} color={active ? '#fff' : Colors.textPrimary} />
       </Pressable>
     </View>
   );
@@ -63,5 +65,4 @@ const styles = StyleSheet.create({
   },
   btnActive: { backgroundColor: Colors.blue, borderColor: Colors.blue },
   btnBusy: { opacity: 0.5 },
-  icon: { fontSize: 22 },
 });

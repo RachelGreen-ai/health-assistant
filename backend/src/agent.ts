@@ -1,6 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { getMcpTools, callMcpTool } from './mcp-client.js';
-import { SYSTEM_PROMPT } from './system-prompt.js';
+import { buildSystemPrompt } from './system-prompt.js';
 
 const anthropic = new Anthropic();
 
@@ -21,28 +21,26 @@ export function clearSession(sessionId: string): void {
 /**
  * Stream a response from Claude with Epic FHIR tools available.
  * Yields text chunks as they arrive; handles tool-use rounds internally.
+ * @param language - BCP-47 language tag (e.g. 'en', 'zh-CN'). Controls response language.
  */
 export async function* chat(
   sessionId: string,
   userMessage: string,
+  language: string = 'en',
 ): AsyncGenerator<string> {
   const messages = getOrCreateSession(sessionId);
   messages.push({ role: 'user', content: userMessage });
 
   const tools = await getMcpTools();
+  const systemPrompt = buildSystemPrompt(language);
 
   while (true) {
     const stream = anthropic.messages.stream({
       model:      process.env.CLAUDE_MODEL ?? 'claude-haiku-4-5',
       max_tokens: 1024,
-      system:     SYSTEM_PROMPT,
+      system:     systemPrompt,
       tools,
       messages,
-    });
-
-    // Stream text deltas to the caller
-    stream.on('text', (delta) => {
-      // Handled by the for-await below via the generator
     });
 
     // Collect text deltas via the async iterator

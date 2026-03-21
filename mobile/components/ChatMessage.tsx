@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import Markdown from 'react-native-markdown-display';
 import { Colors } from '@/constants/Colors';
 import type { Message } from '@/hooks/useChat';
@@ -35,7 +36,7 @@ export function ChatMessage({ message }: { message: Message }) {
     <View style={[styles.row, isUser ? styles.userRow : styles.assistantRow]}>
       {!isUser && (
         <View style={styles.avatar}>
-          <Text style={styles.avatarText}>✦</Text>
+          <Ionicons name="sparkles" size={12} color="#fff" />
         </View>
       )}
       <View style={[styles.bubble, isUser ? styles.userBubble : styles.assistantBubble]}>
@@ -64,7 +65,6 @@ const styles = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
     marginBottom: 2,
   },
-  avatarText: { color: '#fff', fontSize: 12, fontWeight: '700' },
   bubble: {
     maxWidth: '80%', borderRadius: 18, paddingHorizontal: 14, paddingVertical: 10,
   },
